@@ -10,6 +10,7 @@ pub struct Message {
     pub image_url: Option<String>,
     #[serde(deserialize_with = "de_bool")]
     pub is_pinned: bool,
+    pub pin_expires_at: Option<String>,
     pub created_at: String,
 }
 

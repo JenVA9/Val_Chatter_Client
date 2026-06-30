@@ -18,3 +18,15 @@ pub struct Node {
     pub name: String,
     pub parent_id: Option<i64>,
 }
+
+impl Node {
+    pub fn node_type_str(&self) -> &'static str {
+        match self.node_type {
+            NodeType::Map => "map",
+            NodeType::Agent => "agent",
+            NodeType::Site => "site",
+            NodeType::TacticType => "tactic_type",
+            NodeType::AgentCombo => "agent_combo",
+        }
+    }
+}

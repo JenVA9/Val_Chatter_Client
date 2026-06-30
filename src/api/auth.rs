@@ -13,6 +13,10 @@ pub struct AuthResponse {
     #[serde(rename = "userId")]
     pub user_id: i64,
     pub username: String,
+    #[serde(default)]
+    pub is_admin: bool,
+    #[serde(default)]
+    pub is_guest: bool,
 }
 
 pub async fn login(client: &ApiClient, username: &str, password: &str) -> anyhow::Result<AuthResponse> {

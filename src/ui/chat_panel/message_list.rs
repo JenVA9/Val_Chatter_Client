@@ -15,30 +15,34 @@ pub fn show(_ctx: &egui::Context, ui: &mut egui::Ui, app: &mut App) {
             return;
         }
 
-        let my_user_id = app.auth.user_id;
         let server_url = app.server_url.clone();
 
-        // Collect actions first to avoid borrow conflicts
         let mut to_delete: Option<i64> = None;
-        let mut to_pin: Option<(i64, bool)> = None;
+        let mut to_pin_dialog: Option<i64> = None;
+        let mut to_unpin: Option<i64> = None;
         let mut to_view: Option<String> = None;
 
         for msg in &app.chat.messages {
-            let is_own = msg.user_id == my_user_id;
             let texture = msg.image_url.as_ref().and_then(|u| app.image_cache.get(u));
-
-            let action = message::show(ui, msg, is_own, texture, &server_url);
+            let action = message::show(ui, msg, texture, &server_url, &mut app.scroll_to_message);
             match action {
                 Some(message::MsgAction::Delete(id)) => to_delete = Some(id),
-                Some(message::MsgAction::Pin(id)) => to_pin = Some((id, true)),
-                Some(message::MsgAction::Unpin(id)) => to_pin = Some((id, false)),
+                Some(message::MsgAction::PinDialog(id)) => to_pin_dialog = Some(id),
+                Some(message::MsgAction::Unpin(id)) => to_unpin = Some(id),
                 Some(message::MsgAction::ViewImage(url)) => to_view = Some(url),
                 None => {}
             }
         }
 
         if let Some(id) = to_delete { app.spawn_delete_message(id); }
-        if let Some((id, pin)) = to_pin { app.spawn_pin_message(id, pin); }
+        if let Some(id) = to_pin_dialog {
+            app.pin_dialog = Some(crate::app::PinDialog {
+                message_id: id,
+                duration_str: String::new(),
+                is_permanent: true,
+            });
+        }
+        if let Some(id) = to_unpin { app.spawn_pin_message_timed(id, false, None); }
         if let Some(url) = to_view { app.viewing_image = Some(url); }
     });
 

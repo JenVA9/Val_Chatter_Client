@@ -5,3 +5,5 @@ pub mod threads;
 pub mod messages;
 pub mod pins;
 pub mod uploads;
+pub mod admin;
+pub mod whiteboard;

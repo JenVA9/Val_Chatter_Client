@@ -3,13 +3,16 @@ use serde::{Deserialize, Serialize};
 use std::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message as WsMsg};
 
-use crate::models::Message;
+use crate::models::{Message, WbObject};
 
 #[derive(Debug, Clone)]
 pub enum WsEvent {
     Connected,
     Disconnected,
     NewMessage(Message),
+    InputLocked,
+    InputUnlocked,
+    WhiteboardUpdate(Vec<WbObject>),
     Error(String),
 }
 
@@ -35,6 +38,7 @@ struct ServerEnvelope {
     #[serde(rename = "type")]
     kind: String,
     message: Option<Message>,
+    objects: Option<Vec<WbObject>>,
 }
 
 pub async fn connect_and_listen(
@@ -65,52 +69,19 @@ pub async fn connect_and_listen(
         match item {
             Ok(WsMsg::Text(text)) => {
                 if let Ok(env) = serde_json::from_str::<ServerEnvelope>(&text) {
-                    if env.kind == "new_message" {
-                        if let Some(msg) = env.message {
-                            if tx.send(WsEvent::NewMessage(msg)).is_err() { break; }
+                    let ev = match env.kind.as_str() {
+                        "new_message" => {
+                            env.message.map(WsEvent::NewMessage)
                         }
-                    }
-                }
-            }
-            Ok(WsMsg::Close(_)) | Err(_) => break,
-            _ => {}
-        }
-    }
-
-    let _ = tx.send(WsEvent::Disconnected);
-}
-
-pub async fn switch_thread(
-    ws_url: String,
-    _token: String,
-    thread_id: i64,
-    tx: mpsc::SyncSender<WsEvent>,
-) {
-    let url = format!("{}/ws", ws_url);
-    let ws_stream = match connect_async(&url).await {
-        Ok((s, _)) => s,
-        Err(e) => {
-            let _ = tx.send(WsEvent::Error(e.to_string()));
-            return;
-        }
-    };
-
-    let _ = tx.send(WsEvent::Connected);
-    let (mut write, mut read) = ws_stream.split();
-
-    let join = JoinPacket { kind: "join", thread_id };
-    if let Ok(json) = serde_json::to_string(&join) {
-        let _ = write.send(WsMsg::Text(json)).await;
-    }
-
-    while let Some(item) = read.next().await {
-        match item {
-            Ok(WsMsg::Text(text)) => {
-                if let Ok(env) = serde_json::from_str::<ServerEnvelope>(&text) {
-                    if env.kind == "new_message" {
-                        if let Some(msg) = env.message {
-                            if tx.send(WsEvent::NewMessage(msg)).is_err() { break; }
+                        "input_locked" => Some(WsEvent::InputLocked),
+                        "input_unlocked" => Some(WsEvent::InputUnlocked),
+                        "whiteboard_update" => {
+                            env.objects.map(WsEvent::WhiteboardUpdate)
                         }
+                        _ => None,
+                    };
+                    if let Some(ev) = ev {
+                        if tx.send(ev).is_err() { break; }
                     }
                 }
             }
