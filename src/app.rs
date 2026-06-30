@@ -511,8 +511,8 @@ fn save_username(name: &str) -> Result<(), keyring::Error> {
 }
 
 fn clear_keyring() -> Result<(), keyring::Error> {
-    let _ = keyring_entry("token")?.delete_credential();
-    let _ = keyring_entry("user_id")?.delete_credential();
-    let _ = keyring_entry("username")?.delete_credential();
+    let _ = keyring_entry("token")?.delete_password();
+    let _ = keyring_entry("user_id")?.delete_password();
+    let _ = keyring_entry("username")?.delete_password();
     Ok(())
 }

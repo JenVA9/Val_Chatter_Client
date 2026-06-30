@@ -82,7 +82,7 @@ pub async fn connect_and_listen(
 
 pub async fn switch_thread(
     ws_url: String,
-    token: String,
+    _token: String,
     thread_id: i64,
     tx: mpsc::SyncSender<WsEvent>,
 ) {

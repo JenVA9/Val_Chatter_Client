@@ -9,7 +9,7 @@ pub fn show(ui: &mut egui::Ui, app: &mut App) -> Option<InputAction> {
     let mut action = None;
 
     // Show pending image badge
-    if let Some(url) = &app.chat.pending_image_url {
+    if let Some(url) = app.chat.pending_image_url.clone() {
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new(format!("📎 Image: {}", url)).small());
             if ui.small_button("✕").clicked() {
