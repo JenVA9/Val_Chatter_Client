@@ -19,7 +19,7 @@ pub enum Theme { Dark, Light, Nebula, OledBlack }
 impl Default for Theme { fn default() -> Self { Self::Dark } }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub enum AdminTab { #[default] Users, Nodes, Config, Storage, IpBans }
+pub enum AdminTab { #[default] Users, Categories, Config, Storage, IpBans }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ThreadMode { Chat, Whiteboard }

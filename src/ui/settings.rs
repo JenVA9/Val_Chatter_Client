@@ -5,7 +5,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
 
     let mut open = app.settings_open;
 
-    egui::Window::new("⚙  Settings")
+    egui::Window::new("Settings")
         .open(&mut open)
         .resizable(true)
         .min_width(360.0)
@@ -42,7 +42,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
                             }
                             ui.label(&srv.url);
                             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                if ui.small_button("✕").clicked() {
+                                if ui.small_button("x").clicked() {
                                     app.servers.remove(i);
                                 }
                                 if !is_active && ui.small_button("Connect").clicked() {
@@ -102,7 +102,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
 
                 // ── Admin ─────────────────────────────────────────────────
                 if app.is_admin {
-                    if ui.button("🛡  Open Admin Panel").clicked() {
+                    if ui.button("Open Admin Panel").clicked() {
                         app.admin_panel_open = true;
                         app.settings_open = false;
                         app.spawn_load_admin_data();

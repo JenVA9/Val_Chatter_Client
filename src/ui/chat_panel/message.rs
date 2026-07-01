@@ -29,9 +29,9 @@ pub fn show(
                 ui.label(egui::RichText::new(format_time(&msg.created_at)).weak().small());
                 if msg.is_pinned {
                     let pin_label = if let Some(exp) = &msg.pin_expires_at {
-                        format!("📌 ({})", pin_countdown(exp))
+                        format!("[pin] ({})", pin_countdown(exp))
                     } else {
-                        "📌 ∞".to_string()
+                        "[pin]".to_string()
                     };
                     ui.label(egui::RichText::new(pin_label).small().color(egui::Color32::from_rgb(255, 200, 50)));
                 }

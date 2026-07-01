@@ -6,21 +6,21 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
 
     let mut open = app.admin_panel_open;
 
-    egui::Window::new("🛡  Admin Panel")
+    egui::Window::new("Admin Panel")
         .open(&mut open)
         .resizable(true)
-        .min_size([620.0, 460.0])
+        .min_size([640.0, 480.0])
         .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
         .show(ctx, |ui| {
             ui.horizontal(|ui| {
-                tab_btn(ui, "Users",   AdminTab::Users,   &mut app.admin_tab);
-                tab_btn(ui, "Nodes",   AdminTab::Nodes,   &mut app.admin_tab);
-                tab_btn(ui, "Config",  AdminTab::Config,  &mut app.admin_tab);
-                tab_btn(ui, "Storage", AdminTab::Storage, &mut app.admin_tab);
-                tab_btn(ui, "IP Bans", AdminTab::IpBans,  &mut app.admin_tab);
+                tab_btn(ui, "Users",      AdminTab::Users,      &mut app.admin_tab);
+                tab_btn(ui, "Categories", AdminTab::Categories, &mut app.admin_tab);
+                tab_btn(ui, "Config",     AdminTab::Config,     &mut app.admin_tab);
+                tab_btn(ui, "Storage",    AdminTab::Storage,    &mut app.admin_tab);
+                tab_btn(ui, "IP Bans",    AdminTab::IpBans,     &mut app.admin_tab);
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if ui.small_button("↺ Refresh").clicked() {
+                    if ui.small_button("Refresh").clicked() {
                         app.spawn_load_admin_data();
                     }
                 });
@@ -29,11 +29,11 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
             ui.separator();
 
             match app.admin_tab {
-                AdminTab::Users   => show_users(ui, app),
-                AdminTab::Nodes   => show_nodes(ui, app),
-                AdminTab::Config  => show_config(ui, app),
-                AdminTab::Storage => show_storage(ui, app),
-                AdminTab::IpBans  => show_ip_bans(ui, app),
+                AdminTab::Users      => show_users(ui, app),
+                AdminTab::Categories => show_categories(ui, app),
+                AdminTab::Config     => show_config(ui, app),
+                AdminTab::Storage    => show_storage(ui, app),
+                AdminTab::IpBans     => show_ip_bans(ui, app),
             }
         });
 
@@ -78,21 +78,25 @@ fn show_users(ui: &mut egui::Ui, app: &mut App) {
     });
 }
 
-// ── Nodes tab ─────────────────────────────────────────────────────────────────
+// ── Categories tab ────────────────────────────────────────────────────────────
 
-fn show_nodes(ui: &mut egui::Ui, app: &mut App) {
-    // ── Add node form ──────────────────────────────────────────────────────
+fn show_categories(ui: &mut egui::Ui, app: &mut App) {
+    // ── Add item form ──────────────────────────────────────────────────────
     ui.group(|ui| {
-        ui.label(egui::RichText::new("Add node").strong());
+        ui.label(egui::RichText::new("Add item to category").strong());
         ui.horizontal(|ui| {
             ui.add(egui::TextEdit::singleline(&mut app.admin_new_node_name)
                 .hint_text("Name").desired_width(120.0));
 
             egui::ComboBox::from_id_source("admin_node_type")
-                .selected_text(&app.admin_new_node_type)
+                .selected_text(type_display_name(&app.admin_new_node_type))
                 .show_ui(ui, |ui| {
-                    for t in &["map", "agent", "site", "tactic_type"] {
-                        ui.selectable_value(&mut app.admin_new_node_type, t.to_string(), *t);
+                    for t in &["map", "agent", "site", "tactic_type", "agent_combo"] {
+                        ui.selectable_value(
+                            &mut app.admin_new_node_type,
+                            t.to_string(),
+                            type_display_name(t),
+                        );
                     }
                 });
 
@@ -100,12 +104,12 @@ fn show_nodes(ui: &mut egui::Ui, app: &mut App) {
                 let parent_label = app.admin_new_node_parent_id
                     .and_then(|pid| app.admin_nodes.iter().find(|n| n.id == pid))
                     .map(|n| n.name.as_str())
-                    .unwrap_or("— parent map —");
+                    .unwrap_or("-- select map --");
 
                 egui::ComboBox::from_id_source("admin_node_parent")
                     .selected_text(parent_label)
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut app.admin_new_node_parent_id, None, "— none —");
+                        ui.selectable_value(&mut app.admin_new_node_parent_id, None, "-- none --");
                         let maps: Vec<_> = app.admin_nodes.iter()
                             .filter(|n| n.node_type == NodeType::Map)
                             .map(|n| (n.id, n.name.clone()))
@@ -129,19 +133,26 @@ fn show_nodes(ui: &mut egui::Ui, app: &mut App) {
 
     ui.add_space(4.0);
 
-    // ── Node list grouped by type ──────────────────────────────────────────
+    // ── Items grouped by category ──────────────────────────────────────────
     egui::ScrollArea::vertical().show(ui, |ui| {
         let nodes_copy = app.admin_nodes.clone();
 
-        for type_label in &["map", "agent", "site", "tactic_type", "agent_combo"] {
+        for (type_key, type_label) in &[
+            ("map",         "Maps"),
+            ("agent",       "Agents"),
+            ("site",        "Sites"),
+            ("tactic_type", "Tactic Types"),
+            ("agent_combo", "Agent Combos"),
+        ] {
             let group: Vec<_> = nodes_copy.iter()
-                .filter(|n| n.node_type_str() == *type_label)
+                .filter(|n| n.node_type_str() == *type_key)
                 .collect();
             if group.is_empty() { continue; }
 
-            ui.add_space(4.0);
-            ui.label(egui::RichText::new(*type_label).small().strong()
-                .color(egui::Color32::from_gray(160)));
+            ui.add_space(6.0);
+            ui.label(egui::RichText::new(*type_label).strong()
+                .color(egui::Color32::from_rgb(120, 180, 230)));
+            ui.separator();
 
             for node in group {
                 let nid = node.id;
@@ -151,14 +162,14 @@ fn show_nodes(ui: &mut egui::Ui, app: &mut App) {
                     if is_renaming {
                         ui.add(egui::TextEdit::singleline(&mut app.admin_rename_name)
                             .desired_width(150.0));
-                        if ui.small_button("✓").clicked() {
+                        if ui.small_button("Save").clicked() {
                             let new_name = std::mem::take(&mut app.admin_rename_name).trim().to_string();
                             if !new_name.is_empty() {
                                 app.spawn_admin_rename_node(nid, new_name);
                             }
                             app.admin_rename_node_id = None;
                         }
-                        if ui.small_button("✗").clicked() {
+                        if ui.small_button("Cancel").clicked() {
                             app.admin_rename_node_id = None;
                         }
                     } else {
@@ -171,10 +182,10 @@ fn show_nodes(ui: &mut egui::Ui, app: &mut App) {
                         }
                         ui.label(&node.name);
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if ui.small_button("🗑 Del").clicked() {
+                            if ui.small_button("Del").clicked() {
                                 app.spawn_admin_delete_node(nid);
                             }
-                            if ui.small_button("✎").clicked() {
+                            if ui.small_button("Rename").clicked() {
                                 app.admin_rename_node_id = Some(nid);
                                 app.admin_rename_name = node.name.clone();
                             }
@@ -252,7 +263,7 @@ fn show_storage(ui: &mut egui::Ui, app: &mut App) {
 
     ui.separator();
     ui.label(egui::RichText::new("Danger zone:").color(egui::Color32::RED));
-    if ui.add(egui::Button::new("🗑 Purge ALL Uploads").fill(egui::Color32::from_rgb(120, 20, 20))).clicked() {
+    if ui.add(egui::Button::new("Purge ALL Uploads").fill(egui::Color32::from_rgb(120, 20, 20))).clicked() {
         app.spawn_admin_purge_storage();
     }
 }
@@ -292,5 +303,16 @@ fn tab_btn(ui: &mut egui::Ui, label: &str, tab: AdminTab, current: &mut AdminTab
         .fill(if selected { egui::Color32::from_rgb(40, 80, 130) } else { egui::Color32::TRANSPARENT });
     if ui.add(btn).clicked() {
         *current = tab;
+    }
+}
+
+fn type_display_name(t: &str) -> &str {
+    match t {
+        "map"         => "Map",
+        "agent"       => "Agent",
+        "site"        => "Site",
+        "tactic_type" => "Tactic Type",
+        "agent_combo" => "Agent Combo",
+        other         => other,
     }
 }

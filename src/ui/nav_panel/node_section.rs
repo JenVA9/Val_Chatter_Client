@@ -18,7 +18,7 @@ pub fn show(
     ui.add_space(6.0);
 
     // Clickable header toggles collapse
-    let arrow = if is_collapsed { "▶" } else { "▼" };
+    let arrow = if is_collapsed { "[+]" } else { "[-]" };
     let hdr = ui.add(
         egui::Label::new(
             egui::RichText::new(format!("{} {}", arrow, label)).small().strong()

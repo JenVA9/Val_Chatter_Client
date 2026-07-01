@@ -8,7 +8,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
             ui.separator();
             ui.label(&app.auth.username);
             if app.is_admin {
-                ui.label(egui::RichText::new("★").color(egui::Color32::from_rgb(255, 200, 50)));
+                ui.label(egui::RichText::new("[admin]").color(egui::Color32::from_rgb(255, 200, 50)).small());
             }
             if app.is_guest {
                 ui.label(egui::RichText::new("(guest)").weak().small());
@@ -17,17 +17,17 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(egui::RichText::new(&app.server_url).weak().small());
                 ui.separator();
-                if ui.small_button("⚙").on_hover_text("Settings").clicked() {
+                if ui.small_button("Settings").on_hover_text("Settings").clicked() {
                     app.settings_open = true;
                 }
                 if app.is_admin {
-                    if ui.small_button("🛡").on_hover_text("Admin Panel").clicked() {
+                    if ui.small_button("Admin").on_hover_text("Admin Panel").clicked() {
                         app.admin_panel_open = true;
                         app.spawn_load_admin_data();
                     }
                 }
                 if app.input_locked {
-                    ui.label(egui::RichText::new("⚠ STORAGE FULL").color(egui::Color32::from_rgb(255, 100, 0)).small());
+                    ui.label(egui::RichText::new("[!] STORAGE FULL").color(egui::Color32::from_rgb(255, 100, 0)).small());
                 }
             });
         });

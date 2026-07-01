@@ -11,8 +11,8 @@ pub fn show(ui: &mut egui::Ui, app: &mut App) -> Option<InputAction> {
     // Show pending image badge
     if let Some(url) = app.chat.pending_image_url.clone() {
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(format!("📎 Image: {}", url)).small());
-            if ui.small_button("✕").clicked() {
+            ui.label(egui::RichText::new(format!("[img] {}", url)).small());
+            if ui.small_button("x").clicked() {
                 app.chat.pending_image_url = None;
             }
         });
@@ -26,7 +26,7 @@ pub fn show(ui: &mut egui::Ui, app: &mut App) -> Option<InputAction> {
     }
 
     ui.horizontal(|ui| {
-        let attach_btn = ui.button("📎");
+        let attach_btn = ui.button("[img]");
         if attach_btn.clicked() {
             action = Some(InputAction::PickImage);
         }

@@ -32,13 +32,13 @@ pub fn show(ctx: &egui::Context, ui: &mut egui::Ui, app: &mut App) {
                     let chat_sel = mode == ThreadMode::Chat;
                     let wb_sel = mode == ThreadMode::Whiteboard;
 
-                    let chat_btn = egui::Button::new("💬 Chat")
+                    let chat_btn = egui::Button::new("Chat")
                         .fill(if chat_sel { egui::Color32::from_rgb(40, 90, 140) } else { egui::Color32::TRANSPARENT });
                     if ui.add(chat_btn).clicked() && !chat_sel {
                         app.thread_mode.insert(thread_id, ThreadMode::Chat);
                     }
 
-                    let wb_btn = egui::Button::new("🎨 Whiteboard")
+                    let wb_btn = egui::Button::new("Whiteboard")
                         .fill(if wb_sel { egui::Color32::from_rgb(40, 90, 140) } else { egui::Color32::TRANSPARENT });
                     if ui.add(wb_btn).clicked() && !wb_sel {
                         app.thread_mode.insert(thread_id, ThreadMode::Whiteboard);
@@ -78,12 +78,12 @@ pub fn show(ctx: &egui::Context, ui: &mut egui::Ui, app: &mut App) {
         .show_inside(ui, |ui| {
             if app.is_guest {
                 ui.centered_and_justified(|ui| {
-                    ui.label(egui::RichText::new("👁  Guest mode — view only").weak().italics());
+                    ui.label(egui::RichText::new("Guest mode — view only").weak().italics());
                 });
             } else if app.input_locked {
                 ui.centered_and_justified(|ui| {
                     ui.label(
-                        egui::RichText::new("⚠  Server storage full — messaging disabled")
+                        egui::RichText::new("[!] Server storage full — messaging disabled")
                             .color(egui::Color32::from_rgb(255, 180, 0)),
                     );
                 });

@@ -8,7 +8,7 @@ pub fn show(ui: &mut egui::Ui, pinned: &[Message]) -> PinnedBarAction {
     let mut action = PinnedBarAction { jump_to: None };
 
     ui.horizontal(|ui| {
-        ui.label(egui::RichText::new("📌").small().strong());
+        ui.label(egui::RichText::new("Pinned:").small().strong());
 
         for msg in pinned.iter().take(3) {
             ui.separator();
