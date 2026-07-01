@@ -1,9 +1,8 @@
-/// Returns true if the button was clicked.
 /// Visual tiers:
-///   selected + has_content  → neon fill (bright accent)
-///   selected, no content    → normal accent fill
-///   unselected + has_content→ neon outline (thick, bright stroke)
-///   unselected, no content  → dim outline (thin, faded)
+///   selected + has_content  → neon fill + "●" prefix + thick stroke   (in this thread, has messages)
+///   selected, no content    → accent fill, white text                 (selected, no messages yet)
+///   unselected + has_content→ transparent, neon-colored text + border (has messages elsewhere)
+///   unselected, no content  → transparent, dim text, hairline border  (empty)
 pub fn show(
     ui: &mut egui::Ui,
     label: &str,
@@ -13,19 +12,44 @@ pub fn show(
 ) -> bool {
     let neon = neon_of(accent);
 
-    let (bg, text_color, stroke_color, stroke_w) = match (selected, has_content) {
-        (true,  true)  => (neon,                         egui::Color32::WHITE,             neon,   2.0),
-        (true,  false) => (accent,                        egui::Color32::WHITE,             accent, 1.0),
-        (false, true)  => (egui::Color32::TRANSPARENT,   ui.visuals().text_color(),        neon,   2.0),
-        (false, false) => (egui::Color32::TRANSPARENT,   ui.visuals().weak_text_color(),   accent, 1.0),
-    };
-
-    let button = egui::Button::new(egui::RichText::new(label).color(text_color))
-        .fill(bg)
-        .stroke(egui::Stroke::new(stroke_w, stroke_color))
-        .rounding(4.0);
-
-    ui.add(button).clicked()
+    match (selected, has_content) {
+        (true, true) => {
+            let display = format!("● {}", label);
+            ui.add(
+                egui::Button::new(egui::RichText::new(&display).color(egui::Color32::WHITE).strong())
+                    .fill(neon)
+                    .stroke(egui::Stroke::new(2.5, egui::Color32::WHITE.linear_multiply(0.5)))
+                    .rounding(4.0),
+            ).clicked()
+        }
+        (true, false) => {
+            ui.add(
+                egui::Button::new(egui::RichText::new(label).color(egui::Color32::WHITE))
+                    .fill(accent)
+                    .stroke(egui::Stroke::new(1.0, accent))
+                    .rounding(4.0),
+            ).clicked()
+        }
+        (false, true) => {
+            let dim_neon = egui::Color32::from_rgba_unmultiplied(neon.r(), neon.g(), neon.b(), 200);
+            ui.add(
+                egui::Button::new(egui::RichText::new(label).color(dim_neon))
+                    .fill(egui::Color32::TRANSPARENT)
+                    .stroke(egui::Stroke::new(1.5, dim_neon))
+                    .rounding(4.0),
+            ).clicked()
+        }
+        (false, false) => {
+            ui.add(
+                egui::Button::new(
+                    egui::RichText::new(label).color(ui.visuals().weak_text_color()),
+                )
+                    .fill(egui::Color32::TRANSPARENT)
+                    .stroke(egui::Stroke::new(0.5, ui.visuals().weak_text_color()))
+                    .rounding(4.0),
+            ).clicked()
+        }
+    }
 }
 
 fn neon_of(accent: egui::Color32) -> egui::Color32 {

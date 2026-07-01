@@ -38,7 +38,7 @@ pub fn show(ctx: &egui::Context, app: &mut App) {
         .min_width(260.0)
         .max_width(360.0)
         .show(ctx, |ui| {
-            crate::ui::nav_panel::show(ui, &app.nodes, &mut app.nav, &app.active_nodes)
+            crate::ui::nav_panel::show(ui, &app.nodes, &mut app.nav, &app.active_nodes, &mut app.collapsed_sections)
         })
         .inner;
 

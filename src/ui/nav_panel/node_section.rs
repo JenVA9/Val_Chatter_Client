@@ -9,13 +9,28 @@ pub fn show(
     selected: &mut Option<i64>,
     color: egui::Color32,
     active_nodes: &HashSet<i64>,
+    collapsed: &mut HashSet<String>,
 ) {
     if nodes.is_empty() { return; }
 
-    ui.add_space(8.0);
-    ui.label(egui::RichText::new(label).small().strong());
-    ui.add_space(4.0);
+    let is_collapsed = collapsed.contains(label);
 
+    ui.add_space(6.0);
+
+    // Clickable header toggles collapse
+    let arrow = if is_collapsed { "▶" } else { "▼" };
+    let hdr = ui.add(
+        egui::Label::new(
+            egui::RichText::new(format!("{} {}", arrow, label)).small().strong()
+        ).sense(egui::Sense::click())
+    );
+    if hdr.clicked() {
+        if is_collapsed { collapsed.remove(label); } else { collapsed.insert(label.to_string()); }
+    }
+
+    if is_collapsed { return; }
+
+    ui.add_space(2.0);
     ui.horizontal_wrapped(|ui| {
         for node in nodes {
             let is_selected = *selected == Some(node.id);

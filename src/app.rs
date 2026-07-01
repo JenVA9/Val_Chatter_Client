@@ -135,8 +135,12 @@ pub struct App {
     pub admin_ip_bans: Vec<String>,
     pub admin_new_node_name: String,
     pub admin_new_node_type: String,
+    pub admin_new_node_parent_id: Option<i64>,
+    pub admin_rename_node_id: Option<i64>,
+    pub admin_rename_name: String,
     pub admin_new_ip: String,
     pub admin_storage_limit_input: String,
+    pub collapsed_sections: HashSet<String>,
 
     toast: Option<(String, Instant)>,
 }
@@ -215,8 +219,12 @@ impl App {
             admin_ip_bans: Vec::new(),
             admin_new_node_name: String::new(),
             admin_new_node_type: "map".to_string(),
+            admin_new_node_parent_id: None,
+            admin_rename_node_id: None,
+            admin_rename_name: String::new(),
             admin_new_ip: String::new(),
             admin_storage_limit_input: String::new(),
+            collapsed_sections: HashSet::new(),
             toast: None,
         };
 
@@ -665,8 +673,26 @@ impl App {
             let _ = crate::api::admin::create_node(&client, &token, &t, &name, parent_id).await;
             if let Ok(nodes) = crate::api::admin::get_nodes(&client, &token).await {
                 let _ = tx.send(AppEvent::AdminNodesLoaded(nodes));
-                ctx.request_repaint();
             }
+            if let Ok(nodes) = crate::api::nodes::get_all(&client, &token).await {
+                let _ = tx.send(AppEvent::NodesLoaded(nodes));
+            }
+            ctx.request_repaint();
+        });
+    }
+
+    pub fn spawn_admin_rename_node(&mut self, node_id: i64, name: String) {
+        let client = self.api.clone(); let token = self.auth.token.clone();
+        let tx = self.event_tx.clone(); let ctx = self.egui_ctx.clone();
+        self.rt.spawn(async move {
+            let _ = crate::api::admin::rename_node(&client, &token, node_id, &name).await;
+            if let Ok(nodes) = crate::api::admin::get_nodes(&client, &token).await {
+                let _ = tx.send(AppEvent::AdminNodesLoaded(nodes));
+            }
+            if let Ok(nodes) = crate::api::nodes::get_all(&client, &token).await {
+                let _ = tx.send(AppEvent::NodesLoaded(nodes));
+            }
+            ctx.request_repaint();
         });
     }
 
@@ -677,8 +703,11 @@ impl App {
             let _ = crate::api::admin::delete_node(&client, &token, node_id).await;
             if let Ok(nodes) = crate::api::admin::get_nodes(&client, &token).await {
                 let _ = tx.send(AppEvent::AdminNodesLoaded(nodes));
-                ctx.request_repaint();
             }
+            if let Ok(nodes) = crate::api::nodes::get_all(&client, &token).await {
+                let _ = tx.send(AppEvent::NodesLoaded(nodes));
+            }
+            ctx.request_repaint();
         });
     }
 

@@ -11,6 +11,7 @@ pub fn show(
     nodes: &[Node],
     nav: &mut NavState,
     active_nodes: &HashSet<i64>,
+    collapsed: &mut HashSet<String>,
 ) -> bool {
     let before = nav.clone();
 
@@ -20,7 +21,7 @@ pub fn show(
     egui::ScrollArea::vertical().show(ui, |ui| {
         let maps: Vec<&Node> = nodes.iter().filter(|n| n.node_type == NodeType::Map).collect();
         node_section::show(ui, "Map", &maps, &mut nav.selected_map,
-            egui::Color32::from_rgb(70, 130, 180), active_nodes);
+            egui::Color32::from_rgb(70, 130, 180), active_nodes, collapsed);
 
         if let Some(map_id) = nav.selected_map {
             let sites: Vec<&Node> = nodes.iter()
@@ -28,7 +29,7 @@ pub fn show(
                 .collect();
             if !sites.is_empty() {
                 node_section::show(ui, "Site", &sites, &mut nav.selected_site,
-                    egui::Color32::from_rgb(100, 160, 100), active_nodes);
+                    egui::Color32::from_rgb(100, 160, 100), active_nodes, collapsed);
             }
         } else {
             nav.selected_site = None;
@@ -36,11 +37,11 @@ pub fn show(
 
         let agents: Vec<&Node> = nodes.iter().filter(|n| n.node_type == NodeType::Agent).collect();
         node_section::show(ui, "Agent", &agents, &mut nav.selected_agent,
-            egui::Color32::from_rgb(200, 80, 80), active_nodes);
+            egui::Color32::from_rgb(200, 80, 80), active_nodes, collapsed);
 
         let types: Vec<&Node> = nodes.iter().filter(|n| n.node_type == NodeType::TacticType).collect();
         node_section::show(ui, "Tactic Type", &types, &mut nav.selected_type,
-            egui::Color32::from_rgb(160, 100, 200), active_nodes);
+            egui::Color32::from_rgb(160, 100, 200), active_nodes, collapsed);
 
         ui.add_space(12.0);
         ui.separator();
